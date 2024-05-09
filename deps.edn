@@ -14,8 +14,8 @@
  io.grpc/grpc-api {:mvn/version "1.22.1"}
  io.grpc/grpc-core {:mvn/version "1.22.1" :exclusions [com.google.errorprone/error_prone_annotations io.grpc/grpc-api]}
  com.google.cloud/google-cloud-firestore {:mvn/version "1.12.0" :exclusions [io.grpc/grpc-netty-shaded io.grpc/grpc-core io.grpc/grpc-api]}
- com.google.firebase/firebase-admin {:mvn/version "6.8.1" :exclusions [[com.google.guava/guava-jdk5]
-                                                                       [com.google.cloud/google-cloud-firestore]]}
+ com.google.firebase/firebase-admin {:mvn/version "6.8.1" :exclusions [com.google.guava/guava-jdk5
+                                                                       com.google.cloud/google-cloud-firestore]}
                   ;[com.google.auth/google-auth-library-oauth2-http "0.16.2"]
  environ/environ {:mvn/version "1.1.0"}
  danlentz/clj-uuid {:mvn/version "0.1.9"}
