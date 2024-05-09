@@ -1,7 +1,8 @@
 (ns charmander.admin
   (:require [clojure.java.io :as io]
             [environ.core :refer [env]]
-            [googlecredentials.core :as gcred])
+            [googlecredentials.core :as gcred]
+            [tiny.secrets :as !])
   (:import 	com.google.auth.oauth2.GoogleCredentials
             com.google.auth.oauth2.ServiceAccountCredentials
             com.google.firebase.FirebaseApp
@@ -26,17 +27,20 @@
 
 ; private methods
 
+(def service-credentials (!/get-secret :firebase/service-credentials))
+(def database-name (!/get-secret :firebase/database))
+
 (defn- build-firebase-options 
-  ([env-var]
+  ([service-credentials]
     (try 
       (-> (new FirebaseOptions$Builder) ;use thread-first when the final part of the function will return value to be used
-          (.setCredentials (gcred/load-service-credentials env-var))
+          (.setCredentials )
           (.build))
     (catch Exception e (println "\nError: FIREBASE_CONFIG/GOOGLE_APPLICATION_CREDENTIALS AND GOOGLE_CLOUD_PROJECT environment variables must both be set"))))
-  ([database-name env-var]
+  ([service-credentials database-name]
     (try 
       (-> (new FirebaseOptions$Builder) ;use thread-first when the final part of the function will return value to be used
-          (.setCredentials ^ServiceAccountCredentials (gcred/load-service-credentials env-var))
+          (.setCredentials service-credentials)
           (.setDatabaseUrl (str "https://" database-name ".firebaseio.com"))
           (.build))
     (catch Exception e (println "\nError: FIREBASE_CONFIG/GOOGLE_APPLICATION_CREDENTIALS AND GOOGLE_CLOUD_PROJECT environment variables must both be set")))))
@@ -76,19 +80,19 @@
 ; init admin api
 (defn init 
   ([]
-    (init "GOOGLE_APPLICATION_CREDENTIALS"))
-  ([^String env-var]
-    (let [database-name (or (env :firebase-database) (env :google-cloud-project))]
+    (init service-credentials))
+  ([service-credentials]
+    (let [database-name (or (!/get-secret :firebase/database) (!/get-secret :firebase/google-cloud-project))]
       (if (nil? database-name)
         (try
             (. FirebaseAuth getInstance) 
           (catch IllegalStateException ise
-            (let [options (build-firebase-options env-var)]
+            (let [options (build-firebase-options service-credentials)]
               (. FirebaseApp initializeApp options)))))
         (try
             (. FirebaseAuth getInstance) 
           (catch IllegalStateException ise
-            (let [options (build-firebase-options database-name env-var)]
+            (let [options (build-firebase-options database-name service-credentials)]
               (. FirebaseApp initializeApp options)))))))
 
 ; user management api
